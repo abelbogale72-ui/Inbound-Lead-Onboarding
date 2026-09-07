@@ -1,0 +1,348 @@
+{
+  "name": "Inbound Lead Onboarding",
+  "nodes": [
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        160,
+        -128
+      ],
+      "id": "f66b84b2-f8c1-4101-9774-98cc09781efa",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "mCnhA083ZtK8lESW",
+          "name": "Groq account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Retrieve output from previous nodes\nconst webhookData = $('Catch Incoming Submissions').item.json.body || {};\nconst aiContent = $('Analyze Inquiry').item.json.text || \"\";\n\nreturn {\n  json: {\n    leadName: webhookData.name || \"Valued Lead\",\n    leadEmail: webhookData.email || \"\",\n    leadCompany: webhookData.company || \"N/A\",\n    summary: aiContent\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        -288
+      ],
+      "id": "b0dd1c25-9ea1-4095-bca5-45c8dbaec1d8",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        112,
+        0
+      ],
+      "id": "91deb567-c3eb-4738-b87f-de3560f8a46a",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "inbound-lead",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -208,
+        -240
+      ],
+      "id": "001d52be-7720-4142-bfa6-e24fc815fd5b",
+      "name": "Catch Incoming Submissions",
+      "webhookId": "b1df6e7a-1238-4546-a606-201c90e65bb4"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b281bad7-aed3-4f7d-ab7b-99b9d84b55a9",
+              "leftValue": "={{ $json.body.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "2b9edea4-99a4-4474-a376-427d47291270",
+              "leftValue": "={{ $json.body.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "9412747a-ed84-4800-98ce-a41f7cf3d2c5",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -48,
+        -240
+      ],
+      "id": "0344412d-098f-42ee-9c0f-d8432330f4d2",
+      "name": "Filter Invalid Leads"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Name: {{ $json.body.name }}, Project: {{ $json.body.details }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "ou are an AI assistant. Summarize the user's project request into 2 bullet points and write a friendly 3-sentence reply confirming receipt"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        160,
+        -288
+      ],
+      "id": "283a08da-9fe3-46c3-84d5-11611a7dbf51",
+      "name": "Analyze Inquiry"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appofxEZuODMi43qf",
+          "mode": "list",
+          "cachedResultName": "Data Persistence: Record in CRM",
+          "cachedResultUrl": "https://airtable.com/appofxEZuODMi43qf"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblKRx9RsGKI3FkFK",
+          "mode": "list",
+          "cachedResultName": "Table 1",
+          "cachedResultUrl": "https://airtable.com/appofxEZuODMi43qf/tblKRx9RsGKI3FkFK"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.leadName }}",
+            "Email": "={{ $json.leadEmail }}",
+            "Summary": "={{ $json.summary }}",
+            "Company": "={{ $json.leadCompany }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        -288
+      ],
+      "id": "5a7401c7-066b-4a83-beb8-1e62594ab55c",
+      "name": "Record in CRM",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "8zKBa2ngW3jiZAi4",
+          "name": "Airtable Personal Access Token account 7"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "abelbogale51@gmail.com",
+        "toEmail": "={{ $json.fields.Email }}",
+        "subject": "=Thanks for reaching out to us, ! {{ $json.fields.Company }}",
+        "emailFormat": "text",
+        "text": "={{ $json.fields.Summary }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        768,
+        -288
+      ],
+      "id": "7b9e824b-818f-40f2-b710-28cf77966ee3",
+      "name": "Client Outreach: Auto-Reply",
+      "webhookId": "4602512b-743e-4258-87cf-f064cc6d4a8f",
+      "credentials": {
+        "smtp": {
+          "id": "5PvXmv9Wif2vMLkD",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analyze Inquiry",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Record in CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Catch Incoming Submissions": {
+      "main": [
+        [
+          {
+            "node": "Filter Invalid Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Invalid Leads": {
+      "main": [
+        [
+          {
+            "node": "Analyze Inquiry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Inquiry": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record in CRM": {
+      "main": [
+        [
+          {
+            "node": "Client Outreach: Auto-Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "06fde4af-0d0b-4bfa-912e-eb4dd749b44e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "21ffbc9fe4d682285230f68e6ce0a88bc6c175acfc69677e5dd2dfde9641341b"
+  },
+  "nodeGroups": [],
+  "id": "v5IudyMeEiiM0LXp",
+  "tags": []
+}
