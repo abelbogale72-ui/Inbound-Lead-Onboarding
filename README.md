@@ -13,8 +13,8 @@ CRM Synchronization: Creates a new row in Airtable with lead information and AI 
 Client Outreach: Automatically delivers a confirmation email to the lead using standard SMTP/Gmail.
 Robust Branching: Validates email strings using conditional logic (If node) and routes malformed requests through a fallback path.
 🛠 Stack & Prerequisites
-Orchestration: n8n (https://www.google.com/search?q=https://n8n.io/) (Self-Hosted on Docker)
-AI Model: Groq Chat Model / OpenAI API
+n8n Workflow
+AI Model: Groq Chat Model
 CRM: Airtable
-Mail Server: SMTP / Gmail API
+Mail Server:  Email SMTP 
 Container Environment: Docker & Docker Compose
